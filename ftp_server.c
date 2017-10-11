@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <time.h>
+#include <unistd.h>
 
 #define PORT 41046
 #define MAX_PENDING 5
@@ -15,7 +15,7 @@
 int main() {
   struct sockaddr_in sin;
   char buff[MAXLINE];
-  int len, s, new_s;
+  int len, s, new_s, opt;
 
   //build address data structure
   bzero((char *)&sin, sizeof(sin));
@@ -41,13 +41,14 @@ int main() {
     exit(1);
   }
 
+  printf("Welcome to TCP server\n");
+
   //listening
   if((listen(s, MAX_PENDING)) < 0){
     perror("ERROR listenign");
     exit(1);
   }
 
-  printf("Welcome to TCP server");
 
   //wait for connection
   while(1){

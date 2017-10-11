@@ -5,6 +5,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 
 #define PORT 41046
@@ -12,7 +14,7 @@
 
 int main( int argc, char * argv[] ) {
   struct hostent *hp;
-  struct sock addr_in sin;
+  struct sockaddr_in sin;
   char *host;
   char buff[MAXLINE];
   int len, s;
@@ -43,7 +45,16 @@ int main( int argc, char * argv[] ) {
     perror("Error creating socket");
     exit(1);
   }
-  printf("Welcome TCP Client\n");
+  //welcome message
+  printf("Welcome to this simple FTP application. Below is a list of all possible operations you can perform.\n");
+  printf("DWLD: download a file from server\n");
+  printf("UPLD: upload a file to the server\n");
+  printf("DELF: delete file from server\n");
+  printf("LIST: list the directory on the server\n");
+  printf("MDIR: create a directory on the server\n");
+  printf("RDIR: remove a directory from the server\n");
+  printf("CDIR: change to a different directory on the server\n");
+  printf("QUIT: stop application\n");
 
   //connect created socket to remote server
   if(connect(s, (struct sockaddr *)&sin, sizeof(sin)) < 0){
@@ -53,8 +64,7 @@ int main( int argc, char * argv[] ) {
 
   //main loop
   while(fgets(buff, sizeof(buff), stdin)) {
-    buff(MAXLINE-1) = '\0';
-
+    buff[MAXLINE-1] = '\0';
     len = strlen(buff) + 1;
     if(send(s, buff, len, 0) == -1){
       perror("Client send error\n");
