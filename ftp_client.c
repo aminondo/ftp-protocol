@@ -55,6 +55,8 @@ int main( int argc, char * argv[] ) {
   printf("RDIR: remove a directory from the server\n");
   printf("CDIR: change to a different directory on the server\n");
   printf("QUIT: stop application\n");
+  printf("------------------------------------------------------------\n\n");
+  printf(">> ");
 
   //connect created socket to remote server
   if(connect(s, (struct sockaddr *)&sin, sizeof(sin)) < 0){
@@ -64,12 +66,36 @@ int main( int argc, char * argv[] ) {
 
   //main loop
   while(fgets(buff, sizeof(buff), stdin)) {
+    printf("DWLD: download a file from server\n");
+    printf("UPLD: upload a file to the server\n");
+    printf("DELF: delete file from server\n");
+    printf("LIST: list the directory on the server\n");
+    printf("MDIR: create a directory on the server\n");
+    printf("RDIR: remove a directory from the server\n");
+    printf("CDIR: change to a different directory on the server\n");
+    printf("QUIT: stop application\n");
+    printf("------------------------------------------------------------\n\n");
+    printf(">> ");
     buff[MAXLINE-1] = '\0';
-    len = strlen(buff) + 1;
-    if(send(s, buff, len, 0) == -1){
-      perror("Client send error\n");
-      exit(1);
+
+    if(!strncmp(buff, "QUIT", 4)){ //quit command
+      printf("Goodbye!\n");
+      break;
+    } else if(!strncmp(buff, "LIST", 4)){ //list command
+      len = strlen(buff) + 1;
+      if(send(s, buff, len, 0) == -1){
+        perror("Client send error\n");
+        exit(1);
+      }
+    } else if(!strncmp(buff, "DWLD", 4)){ //dwld command
+      len = strlen(buff) + 1;
+      if(send(s, buff, len, 0) == -1){
+        perror("Client send error\n");
+        exit(1);
+      }
     }
+
+
   }
 
   //close socket

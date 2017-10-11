@@ -20,7 +20,7 @@ int main() {
   //build address data structure
   bzero((char *)&sin, sizeof(sin));
   sin.sin_family = AF_INET;
-  sin.sin_addr.s_addr = INADDR_ANY;
+  //sin.sin_addr.s_addr = INADDR_ANY;
   sin.sin_port = htons(PORT);
 
   //setup passive open
@@ -40,8 +40,6 @@ int main() {
     perror("ERROR binding socket");
     exit(1);
   }
-
-  printf("Welcome to TCP server\n");
 
   //listening
   if((listen(s, MAX_PENDING)) < 0){
@@ -64,11 +62,11 @@ int main() {
       }
       if(len==0)
         break;
-      printf("TCP recieved: %s", buff);
+      printf("TCP recieved: %s\n", buff);
     }
 
     //close connection
-    printf("Client finishes, close connection!");
+    printf("Client finishes, close connection!\n");
     close(new_s);
   }
 
