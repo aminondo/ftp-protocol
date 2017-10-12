@@ -16,7 +16,7 @@
 
 int main() {
   struct sockaddr_in sin;
-  char buff[MAXLINE], msg[MAXLINE];
+  char buff[MAXLINE], msg[MAXLINE], path[MAXLINE];
   int len, s, new_s, opt;
 
   //build address data structure
@@ -75,6 +75,7 @@ int main() {
           perror("ERROR: error reading directory");
         }
         //loops through all directory items
+        memset(msg, 0, sizeof(msg));
         while((dir = readdir(d)) != NULL){
           //gets all file permissions
           if(!stat(dir->d_name, &fileStat)){
@@ -110,8 +111,12 @@ int main() {
           perror("Server recieve error");
           exit(1);
         }
-        printf("changing directory to %s\n", buff);
-        if(chdir(buff) != 0)
+        //build new path
+        memset(path, 0, sizeof(path));
+        strcat(path, "./");
+        buff[strlen(buff)-1] = '\0';
+        strcat(path, buff);
+        if(chdir(path) != 0)
           perror("Error changing directory");
       }
     }

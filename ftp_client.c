@@ -67,6 +67,7 @@ int main( int argc, char * argv[] ) {
   //main loop
   while(fgets(buff, sizeof(buff), stdin)) {
     buff[MAXLINE-1] = '\0';
+    memset(msg, 0, sizeof(msg));
 
     if(!strncmp(buff, "QUIT", 4)){ //quit command
       printf("Goodbye!\n");
