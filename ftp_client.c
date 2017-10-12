@@ -85,6 +85,7 @@ int main( int argc, char * argv[] ) {
       printf("%s\n", msg);
     }
     else if(!strncmp(buff, "CDIR", 4)){ //cdir command
+      len = strlen(buff) + 1;
       if(send(s, buff, len, 0) == -1){
         perror("Client send error\n");
         exit(1);
@@ -108,7 +109,8 @@ int main( int argc, char * argv[] ) {
       else if(!strncmp(msg, "1",1))
         printf("Changed current directory.\n");
     }
-    else if(!strncmp(buff, "MDIR", 4)) { //create directory in server
+    else if(!strncmp(buff, "MDIR", 4)){ //create directory in server
+      len = strlen(buff) + 1;
       if(send(s, buff, len, 0) == -1){
         perror("Client send error\n");
         exit(1);
@@ -132,7 +134,67 @@ int main( int argc, char * argv[] ) {
       else if(!strncmp(msg, "1",1))
         printf("The directory was successfully made.\n");
     }
+    else if(!strncmp(buff, "RDIR", 4)){ //delete empty directory from server
+      len = strlen(buff) + 1;
+      if(send(s, buff, len, 0) == -1){
+        perror("Client send error\n");
+        exit(1);
+      }
+      printf("folder to delete: ");
+      fgets(buff, sizeof(buff), stdin);
+      len = strlen(buff) + 1;
+      if(send(s, buff, len, 0) == -1){
+        perror("Client send error\n");
+        exit(1);
+      }
+      //receive status back from server
+      if((len = recv(s, msg, sizeof(msg), 0)) == -1){
+        perror("Client receive error\n");
+        exit(1);
+      }
+      if(!strncmp(msg, "-1",2))
+        printf("The directory does not exist on server.\n");
+      else if(!strncmp(msg, "1",1)){
+        printf("Are you sure you want to delete this folder? (Yes/No) ");
+        fgets(buff, sizeof(buff), stdin);
+        if(!strncmp(buff, "Yes",3)){ //delete confirmed
+          len = strlen(buff) + 1;
+          if(send(s, buff, len, 0) == -1){
+            perror("Client send error\n");
+            exit(1);
+          }
+          //waiting for status from server
+          //clear msg
+          memset(msg, 0, sizeof(msg));
+          if((len = recv(s, msg, sizeof(msg), 0)) == -1){
+            perror("Client receive error\n");
+            exit(1);
+          }
+          if(!strncmp(msg, "1",1))
+            printf("Directory deleted.\n");
+          else
+            printf("Failed to delete directory.\n");
 
+        } else if(!strncmp(buff, "No",2)) {
+          printf("Delete abandonded by user!\n");
+          len = strlen(buff) + 1;
+          if(send(s, buff, len, 0) == -1){
+            perror("Client send error\n");
+            exit(1);
+          }
+        } else {
+          printf("Error in input. Request canceled.\n");
+          strcpy(buff, "No");
+          len = strlen(buff) + 1;
+          if(send(s, buff, len, 0) == -1){
+            perror("Client send error\n");
+            exit(1);
+          }
+
+        }
+
+      }
+    }
 
     printf("\n------------------------------------------------------------\n");
     printf("DWLD: download a file from server\n");

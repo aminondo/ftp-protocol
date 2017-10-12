@@ -20,6 +20,7 @@ int main() {
   char buff[MAXLINE], msg[MAXLINE], path[MAXLINE];
   int len, s, new_s, opt;
   DIR * d;
+  struct stat sb;
 
   //build address data structure
   bzero((char *)&sin, sizeof(sin));
@@ -109,7 +110,7 @@ int main() {
       }
       //changes active directory
       if(!strncmp(buff, "CDIR", 4)){
-        struct stat is_folder;
+        //struct stat is_folder;
 
         //waiting for message from client
         if((len = recv(new_s, buff, sizeof(buff), 0)) == -1){
@@ -120,7 +121,7 @@ int main() {
         strcpy(path, "./");
         buff[strlen(buff)-1] = '\0';
         strcat(path, buff);
-        if(stat(path, &is_folder) == 0 && S_ISDIR(is_folder.st_mode)){ //directory exists
+        if(stat(path, &sb) == 0 && S_ISDIR(sb.st_mode)){ //directory exists
           //attempt changing directory
           if(chdir(path) != 0){ //directory change unsucessful
             strcpy(msg, "-1");
@@ -145,7 +146,7 @@ int main() {
       }
       //creates directory on server
       if(!strncmp(buff, "MDIR", 4)){
-        struct stat sb;
+        //struct stat sb;
         printf("recieved MDIR\n");
         //waiting for message from client
         if((len = recv(new_s, buff, sizeof(buff), 0)) == -1){
@@ -157,22 +158,20 @@ int main() {
         strcpy(path, "./");
         buff[strlen(buff)-1] = '\0';
         strcat(path, buff);
-        if(stat(buff, &sb) == 0 && S_ISDIR(sb.st_mode)){
-          printf("folder exists!\n;");
+        if(stat(buff, &sb) == 0 && S_ISDIR(sb.st_mode)){ //folder exists
           strcpy(msg, "-2");
           if(send(new_s, msg, strlen(msg), 0) == -1){
             perror("Server send error\n");
             exit(1);
           }
-        } else {
-          printf("folder doesn't exist!\n");
+        } else { //folder doesn't exist
           if(mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1){ //error creating folder
             strcpy(msg, "-1");
             if(send(new_s, msg, strlen(msg), 0) == -1){
               perror("Server send error\n");
               exit(1);
             }
-          } else {
+          } else { //folder creation successful
             strcpy(msg, "1");
             if(send(new_s, msg, strlen(msg), 0) == -1){
               perror("Server send error\n");
@@ -180,7 +179,60 @@ int main() {
             }
           }
         }
+      }
+      //removes empty directory from server
+      if(!strncmp(buff, "RDIR", 4)){
+        //waiting for message from client
+        if((len = recv(new_s, buff, sizeof(buff), 0)) == -1){
+          perror("Server recieve error");
+          exit(1);
+        }
+        printf("client wants to delete %s", buff);
+        strcpy(path, "./");
+        buff[strlen(buff)-1] = '\0';
+        strcat(path, buff);
 
+        if(stat(path, &sb) == 0 && S_ISDIR(sb.st_mode)){ //folder exists
+          printf("folder exists!\n");
+          strcpy(msg, "1");
+          if(send(new_s, msg, strlen(msg), 0) == -1){
+            perror("Server send error\n");
+            exit(1);
+          }
+          //waiting for confirmation from client
+          if((len = recv(new_s, buff, sizeof(buff), 0)) == -1){
+            perror("Server recieve error");
+            exit(1);
+          }
+          if(!strncmp(buff, "Yes", 3)){
+            memset(msg, 0, sizeof(msg)); //clear message buffer
+            printf("gonna delete the folder.\n");
+            if(rmdir(path) == -1){ //delete failed
+              strcpy(msg, "-1");
+              if(send(new_s, msg, strlen(msg), 0) == -1){
+                perror("Server send error\n");
+                exit(1);
+              }
+            } else { //delete successful
+              strcpy(msg, "1");
+              if(send(new_s, msg, strlen(msg), 0) == -1){
+                perror("Server send error\n");
+                exit(1);
+              }
+            }
+          } else {
+            printf("delete canceled by user\n");
+          }
+
+        }
+        else {
+          printf("folder doesnt exist\n");
+          strcpy(msg, "-1");
+          if(send(new_s, msg, strlen(msg), 0) == -1){
+            perror("Server send error\n");
+            exit(1);
+          }
+        }
       }
     }
 
