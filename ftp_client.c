@@ -101,6 +101,18 @@ int main( int argc, char * argv[] ) {
         perror("Client send error\n");
         exit(1);
       }
+      //receive status back from server
+      if((len = recv(s, msg, sizeof(msg), 0)) == -1){
+        perror("Client receive error\n");
+        exit(1);
+      }
+      if(!strncmp(msg, "-2",2))
+        printf("The directory does not exist on server.\n");
+      else if(!strncmp(msg, "-1",2))
+        printf("Error changing directory.\n");
+      else if(!strncmp(msg, "1",1))
+        printf("Changed current directory.\n");
+
 
     }
     printf("\n------------------------------------------------------------\n");

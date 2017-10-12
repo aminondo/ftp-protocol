@@ -8,6 +8,7 @@
 #include <netdb.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <errno.h>
 
 #define PORT 41046
 #define MAX_PENDING 5
@@ -18,6 +19,7 @@ int main() {
   struct sockaddr_in sin;
   char buff[MAXLINE], msg[MAXLINE], path[MAXLINE];
   int len, s, new_s, opt;
+  DIR * d;
 
   //build address data structure
   bzero((char *)&sin, sizeof(sin));
@@ -52,6 +54,8 @@ int main() {
 
   //wait for connection
   while(1){
+    memset(msg, 0, sizeof(msg));
+
     if((new_s = accept(s, (struct sockaddr *)&sin, &len)) < 0){
       perror("ERROR accpeting connection");
       exit(1);
@@ -70,12 +74,11 @@ int main() {
       if(!strncmp(buff, "LIST", 4)){
         struct dirent * dir;
         struct stat fileStat;
-        DIR * d = opendir(".");
+        d = opendir(".");
         if(d == NULL){
           perror("ERROR: error reading directory");
         }
         //loops through all directory items
-        memset(msg, 0, sizeof(msg));
         while((dir = readdir(d)) != NULL){
           //gets all file permissions
           if(!stat(dir->d_name, &fileStat)){
@@ -106,6 +109,8 @@ int main() {
       }
       //changes active directory
       if(!strncmp(buff, "CDIR", 4)){
+        struct stat is_folder;
+
         //waiting for message from client
         if((len = recv(new_s, buff, sizeof(buff), 0)) == -1){
           perror("Server recieve error");
@@ -116,8 +121,29 @@ int main() {
         strcat(path, "./");
         buff[strlen(buff)-1] = '\0';
         strcat(path, buff);
-        if(chdir(path) != 0)
-          perror("Error changing directory");
+        printf("changing directory to: [%s]\n", path);
+        if(stat(path, &is_folder) == 0 && S_ISDIR(is_folder.st_mode)){ //directory exists
+          //attempt changing directory
+          if(chdir(path) != 0){ //directory change unsucessful
+            strcpy(msg, "-1");
+            if(send(new_s, msg, strlen(msg), 0) == -1){
+              perror("Server send error\n");
+              exit(1);
+            }
+          } else { //directory change successful
+            strcpy(msg, "1");
+            if(send(new_s, msg, strlen(msg), 0) == -1){
+              perror("Server send error\n");
+              exit(1);
+            }
+          }
+        } else { //directory does not exist
+          strcpy(msg, "-2");
+          if(send(new_s, msg, strlen(msg), 0) == -1){
+            perror("Server send error\n");
+            exit(1);
+          }
+        }
       }
     }
 
@@ -125,5 +151,6 @@ int main() {
     printf("Client finishes, close connection!\n");
     close(new_s);
   }
+
 
 }
