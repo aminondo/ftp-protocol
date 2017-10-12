@@ -70,9 +70,9 @@ int main( int argc, char * argv[] ) {
     memset(msg, 0, sizeof(msg));
 
     if(!strncmp(buff, "QUIT", 4)){ //quit command
-      //printf("Goodbye!\n");
       break;
-    } else if(!strncmp(buff, "LIST", 4)){ //list command
+    }
+    else if(!strncmp(buff, "LIST", 4)){ //list command
       len = strlen(buff) + 1;
       if(send(s, buff, len, 0) == -1){
         perror("Client send error\n");
@@ -83,13 +83,8 @@ int main( int argc, char * argv[] ) {
         exit(1);
       }
       printf("%s\n", msg);
-    } else if(!strncmp(buff, "DWLD", 4)){ //dwld command
-      len = strlen(buff) + 1;
-      if(send(s, buff, len, 0) == -1){
-        perror("Client send error\n");
-        exit(1);
-      }
-    } else if(!strncmp(buff, "CDIR", 4)){ //cdir command
+    }
+    else if(!strncmp(buff, "CDIR", 4)){ //cdir command
       if(send(s, buff, len, 0) == -1){
         perror("Client send error\n");
         exit(1);
@@ -112,9 +107,33 @@ int main( int argc, char * argv[] ) {
         printf("Error changing directory.\n");
       else if(!strncmp(msg, "1",1))
         printf("Changed current directory.\n");
-
-
     }
+    else if(!strncmp(buff, "MDIR", 4)) { //create directory in server
+      if(send(s, buff, len, 0) == -1){
+        perror("Client send error\n");
+        exit(1);
+      }
+      printf("new folder name: ");
+      fgets(buff, sizeof(buff), stdin);
+      len = strlen(buff) + 1;
+      if(send(s, buff, len, 0) == -1){
+        perror("Client send error\n");
+        exit(1);
+      }
+      //receive status back from server
+      if((len = recv(s, msg, sizeof(msg), 0)) == -1){
+        perror("Client receive error\n");
+        exit(1);
+      }
+      if(!strncmp(msg, "-2",2))
+        printf("The directory already exists on server.\n");
+      else if(!strncmp(msg, "-1",2))
+        printf("Error in making directory.\n");
+      else if(!strncmp(msg, "1",1))
+        printf("The directory was successfully made.\n");
+    }
+
+
     printf("\n------------------------------------------------------------\n");
     printf("DWLD: download a file from server\n");
     printf("UPLD: upload a file to the server\n");
@@ -132,5 +151,5 @@ int main( int argc, char * argv[] ) {
   //close socket
   close(s);
   //exit
-  printf("Goodbye. session has been closed.");
+  printf("Goodbye. session has been closed.\n");
 }
