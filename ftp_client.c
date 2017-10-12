@@ -70,7 +70,7 @@ int main( int argc, char * argv[] ) {
     memset(msg, 0, sizeof(msg));
 
     if(!strncmp(buff, "QUIT", 4)){ //quit command
-      printf("Goodbye!\n");
+      //printf("Goodbye!\n");
       break;
     } else if(!strncmp(buff, "LIST", 4)){ //list command
       len = strlen(buff) + 1;
@@ -119,4 +119,6 @@ int main( int argc, char * argv[] ) {
 
   //close socket
   close(s);
+  //exit
+  printf("Goodbye. session has been closed.");
 }
