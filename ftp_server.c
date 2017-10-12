@@ -3,8 +3,10 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <dirent.h>
 #include <unistd.h>
 
 #define PORT 41046
@@ -14,7 +16,7 @@
 
 int main() {
   struct sockaddr_in sin;
-  char buff[MAXLINE];
+  char buff[MAXLINE], msg[MAXLINE];
   int len, s, new_s, opt;
 
   //build address data structure
@@ -63,6 +65,55 @@ int main() {
       if(len==0)
         break;
       printf("TCP recieved: %s\n", buff);
+
+      // Program gets directory listing and sends back to client
+      if(!strncmp(buff, "LIST", 4)){
+        struct dirent * dir;
+        struct stat fileStat;
+        DIR * d = opendir(".");
+        if(d == NULL){
+          perror("ERROR: error reading directory");
+        }
+        //loops through all directory items
+        while((dir = readdir(d)) != NULL){
+          //gets all file permissions
+          if(!stat(dir->d_name, &fileStat)){
+            strcat(msg,(S_ISDIR(fileStat.st_mode))  ? "d" : "-");
+            strcat(msg,(fileStat.st_mode & S_IRUSR) ? "r" : "-");
+            strcat(msg,(fileStat.st_mode & S_IWUSR) ? "w" : "-");
+            strcat(msg,(fileStat.st_mode & S_IXUSR) ? "x" : "-");
+            strcat(msg,(fileStat.st_mode & S_IRGRP) ? "r" : "-");
+            strcat(msg,(fileStat.st_mode & S_IWGRP) ? "w" : "-");
+            strcat(msg,(fileStat.st_mode & S_IXGRP) ? "x" : "-");
+            strcat(msg,(fileStat.st_mode & S_IROTH) ? "r" : "-");
+            strcat(msg,(fileStat.st_mode & S_IWOTH) ? "w" : "-");
+            strcat(msg,(fileStat.st_mode & S_IXOTH) ? "x" : "-");
+          } else {
+            perror("Error in stat");
+          }
+          //attach file name
+          strcat(msg, " ");
+          strcat(msg, dir->d_name);
+          strcat(msg, "\n");
+        }
+        //sends back to client
+        if(send(new_s, msg, strlen(msg), 0) == -1){
+          perror("Server send error\n");
+          exit(1);
+        }
+        closedir(d);
+      }
+      //changes active directory
+      if(!strncmp(buff, "CDIR", 4)){
+        //waiting for message from client
+        if((len = recv(new_s, buff, sizeof(buff), 0)) == -1){
+          perror("Server recieve error");
+          exit(1);
+        }
+        printf("changing directory to %s\n", buff);
+        if(chdir(buff) != 0)
+          perror("Error changing directory");
+      }
     }
 
     //close connection
