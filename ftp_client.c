@@ -18,7 +18,7 @@
 int main( int argc, char * argv[] ) {
   struct hostent *hp;
   struct sockaddr_in sin;
-  char *host, *name;
+  char *host;
   char buff[MAXLINE], msg[MAXLINE];
   unsigned char digest[MD5_DIGEST_LENGTH];
   int len, s, size;
@@ -263,7 +263,7 @@ int main( int argc, char * argv[] ) {
         MD5_Init (&mdContext);
         do {
             bzero(buff, sizeof(buff) );
-            len = fread (buff, sizeof(char), sizeofbuff), fp );
+            len = fread (buff, sizeof(char), sizeof(buff), fp );
             MD5_Update( &mdContext, buff, len );
         } while ( len != 0 );
 
