@@ -8,6 +8,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <mhash.h>
+#include <openssl/sha.h>
+#include <openssl/md5.h>
 
 
 #define PORT 41046
