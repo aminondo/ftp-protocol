@@ -262,9 +262,9 @@ int main( int argc, char * argv[] ) {
         MD5_CTX mdContext; //setup
         MD5_Init (&mdContext);
         do {
-            bzero(name, sizeof(name) );
-            len = fread (name, sizeof(char), sizeof(name), fp );
-            MD5_Update( &mdContext, name, len );
+            bzero(buff, sizeof(buff) );
+            len = fread (buff, sizeof(char), sizeofbuff), fp );
+            MD5_Update( &mdContext, buff, len );
         } while ( len != 0 );
 
         MD5_Final ( digest, &mdContext );
