@@ -27,9 +27,10 @@ int main( int argc, char * argv[] ) {
   struct sockaddr_in sin;
   char *host;
   char buff[MAXLINE], msg[MAXLINE];
-  unsigned char digest[MD5_DIGEST_LENGTH];
+  unsigned char digest[MD5_DIGEST_LENGTH], tmp_md5[MD5_DIGEST_LENGTH];
   int len, s, size;
   FILE *fp;
+  struct timeval start, end;
 
   //check arguments
   if(argc == 2){
