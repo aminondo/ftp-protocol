@@ -24,7 +24,8 @@ typedef struct {
 int main() {
   struct sockaddr_in sin;
   char buff[MAXLINE], msg[MAXLINE], path[MAXLINE];
-  int len, s, new_s, opt;
+  unsigned int len; // fix warning
+  int s, new_s, opt;
   DIR * d;
   struct stat sb;
 
@@ -389,11 +390,11 @@ int main() {
               exit(1);
             }
             bzero(buff,sizeof(buff));
-            bytes = fread(buf, 1, MAXLINE, fp);
+            bytes = fread(buff, 1, MAXLINE, fp);
             while(bytes > 0 )
             {
                 mhash(td, &buff, sizeof(buff));
-                bzero(buf,sizeof(buff));
+                bzero(buff,sizeof(buff));
                 bytes = fread(buf,1, MAXLINE, fp);
             }
             mhash_deinit(td,hash);
