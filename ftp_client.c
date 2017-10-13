@@ -238,7 +238,7 @@ int main( int argc, char * argv[] ) {
                 perror("Client receive error\n");
                 exit(1);
               }
-              if ( msg == 1 ) printf("delete successful");
+              if(!strncmp(msg, "1",1)) printf("delete successful");
               else printf("delete failure");
           } else printf("Delete abandoned by the user!\n");
       }
@@ -262,4 +262,5 @@ int main( int argc, char * argv[] ) {
   close(s);
   //exit
   printf("Goodbye. session has been closed.\n");
+  return 0;
 }
