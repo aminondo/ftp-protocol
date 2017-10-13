@@ -16,9 +16,10 @@
 int main( int argc, char * argv[] ) {
   struct hostent *hp;
   struct sockaddr_in sin;
-  char *host;
+  char *host *name;
   char buff[MAXLINE], msg[MAXLINE];
-  int len, s;
+  unsigned char tmp_md5[MD5_DIGEST_LENGTH], digest[MD5_DIGEST_LENGTH];
+  int len, s, size;
   FILE *fp;
 
   //check arguments
@@ -247,8 +248,8 @@ int main( int argc, char * argv[] ) {
         }
         // send file to server
         do {
-            bzero( buf, sizeof(buf) );
-            len = fread( buf, sizeof(char), sizeof(buf), fp );
+            bzero( buff, sizeof(buff) );
+            len = fread( buff, sizeof(char), sizeof(buff), fp );
             if(send(s, buff, len, 0) == -1) {
               perror("Client send error\n");
               exit(1);
