@@ -201,6 +201,101 @@ int main( int argc, char * argv[] ) {
       }
     }
     else if(!strncmp(buff, "DWLD", 4)){ // get file
+      int flag = 1;
+
+      len = strlen(buff) + 1;
+      if(send(s, buff, len, 0) == -1){
+        perror("Client send error\n");
+        exit(1);
+      }
+      printf("file to download: ");
+      fgets(buff, sizeof(buff), stdin);
+      len = strlen(buff) + 1;
+      if(send(s, buff, len, 0) == -1){
+        perror("Client send error\n");
+        exit(1);
+      }
+      //receive status back from server
+      if ( recv( s, &flag, sizeof(flag), 0 ) == -1 ) {
+        perror("receive error");
+        exit(1);
+      }
+      if ( flag == -1 ) printf( "The file does not exist on server.\n");
+
+      if ( recv( s, tmp_md5, MD5_DIGEST_LENGTH, 0 ) == -1 ) { // hash
+        perror("receive error");
+        exit(1);
+      }
+
+      if ( ( fp = fopen( buff, "w" ) ) == NULL ){ // open file
+          perror("I/O error")
+          exit(1);
+      }
+
+      gettimeofday(&start, NULL);
+
+      // receive file from server
+      do {
+          bzero( buff, sizeof(buff) );
+          if ( size - tmp_size < sizeof(buff) )
+              len = recv( s, buff, ( size - tmp_size ), 0 );
+          else len = recv( s, buff, sizeof(buff), 0 );
+          if ( len == -1 ) {
+              perror("receive error");
+              exit(1);
+          }
+          fwrite( buff, sizeof(char), len, fp );
+      } while ( ( tmp_size += len ) < size );
+
+      gettimeofday(&fin, NULL);
+
+      // close file
+      fclose( fp );
+
+      // open file in disk
+      if ( ( fp = fopen( name, "r" ) ) == NULL ){
+          printf("file I/O error\n");
+          exit(1);
+      }
+
+      MD5_CTX mdContext;
+
+      MD5_Init (&mdContext);
+
+      do {
+          bzero( buff, sizeof(buff) );
+          len = fread ( buff, sizeof(char), sizeof(buff), fp );
+          MD5_Update( &mdContext, buff, len );
+      } while ( len != 0 );
+
+      MD5_Final ( digest, &mdContext );
+      len = MD5_DIGEST_LENGTH;
+      fclose( fp );
+
+      // compare MD5 hashes
+      flag = md5_cmp( tmp_md5, digest );
+      int i;
+      int res = 1;
+      for ( i = 0; i < MD5_DIGEST_LENGTH; i++ )
+          if ( tmp_md5[i] != digest[i] ) {
+            res = 0;
+          }
+
+      // report result
+      if ( flag ) {
+          printf("file transfer successful\n");
+          printf( "%d bytes transferred in %.6lf seconds: ", size, throughput( &start, &fin ) / 1000000.0 );
+          printf( "%.3lf Megabytes/sec\n", ( double ) ( size / throughput( &start, &fin ) ) );
+          int i;
+
+          printf( "File MD5sum: " );
+
+          for ( i = 0; i < MD5_DIGEST_LENGTH; i++ )
+              printf( "%02hhx", digest[i] );
+
+          printf( "\n" );
+
+      } else printf("file transfer error\n");
     }
 
     else if(!strncmp(buff, "UPLD", 4)) { // upload file

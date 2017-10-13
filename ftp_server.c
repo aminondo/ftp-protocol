@@ -412,6 +412,116 @@ int main() {
             }
         }
       }
+
+      if(!strncmp(buff, "DWLD", 4)) {
+        FILE *fp;
+        struct stat st;
+        int filesize;
+        int bytes;
+        short int len_filename;
+        MHASH td;
+        unsigned char hash[16];
+
+        // receive len of filename
+        if((len=recv(new_s, &len_filename, sizeof(short int),0))==-1)  {
+          perror("Server recieve error");
+          exit(1);
+        }
+
+        // decode len_filename
+        len_filename = ntohs(len_filename);
+
+        // receive file name
+        bzero(buff, sizeof(buff));
+        if((len=recv(new_s,buff,len_filename,0))==-1)  {
+          perror("Server recieve error");
+          exit(1);
+        }
+        buf[len] = '\0';
+
+        if (access(buff, R_OK) != -1) { //readable
+            stat(buff, &st);
+            filesize = st.st_size;
+
+            if(!S_ISREG(st.st_mode)){ // not reg err
+                int temp = -3;
+                temp = htonl(temp);
+                if(send(new_s, &temp, sizeof(int), 0)==-1) {
+                    perror("Server send error");
+                    exit(1);
+                }
+            } else { // reg file
+                filesize = htonl(filesize);
+
+                if(send(new_s, &filesize, sizeof(int), 0)==-1) { // fsize
+                  perror("Server send error");
+                  exit(1);
+                }
+
+                if (!(fp = fopen(buff, "r"))) {
+                  perror("Server can't read file");
+                  exit(1);
+                }
+
+                // computer the MD5 hash
+                td = mhash_init(MHASH_MD5);
+                if (td == MHASH_FAILED) {
+                  perror("Server hash fail");
+                  exit(1);
+                }
+            bzero(buff, sizeof(buff));
+                bytes=fread(buff,1,MAXLINE,fp);
+                while(bytes>0)
+                {
+                    mhash(td,&buff,sizeof(buff));
+                bzero(buff, sizeof(buff));
+                    bytes=fread(buff,1,MAXLINE,fp);
+                }
+
+                rewind(fp); // reset
+
+                mhash_deinit(td, hash);
+                if(send(new_s, &hash, sizeof(hash), 0)==-1)  {
+                  perror("Server send error");
+                  exit(1);
+                }
+
+                while(1) { // file send
+                    bzero((char *)buff, sizeof(buff));
+                    int nred = fread(buff, 1, MAXLINE, fp);
+
+                    if (nred > 0) { // got bytes
+                        if(send(new_s, &buff, nred, 0)==-1)  {
+                          perror("Server send error");
+                          exit(1);
+                        }
+                    }
+
+                    if (nred < MAXLINE) { // err check
+                        if(ferror(fp)) {
+                          perror("Server read error");
+                          exit(1);
+                        }
+                        break; // finished
+                    }
+                }
+            }
+        } else if(access(buff, F_OK) != -1) {
+            int temp = -2;
+            temp = htonl(temp);
+            if(send(new_s, &temp, sizeof(int), 0)==-1) {
+              perror("Server send error");
+              exit(1);
+            }
+        } else { // DNE
+            int temp = -1;
+            temp = htonl(temp);
+            if(send(new_s, &temp, sizeof(int), 0)==-1)  {
+              perror("Server send error");
+              exit(1);
+            }
+        }
+      }
     }
 
     //close connection
