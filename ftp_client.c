@@ -216,7 +216,7 @@ int main( int argc, char * argv[] ) {
         exit(1);
       }
       //receive status back from server
-      if ( recv( s, buff, size, flag ) == -1 ) {
+      if ( recv( s, flag, sizeof(flag), 0 ) == -1 ) {
         perror("receive error");
         exit(1);
       }
@@ -224,11 +224,13 @@ int main( int argc, char * argv[] ) {
       else {
           // get confirmation from user
           printf( "Are you sure you want to remove this file? (Yes/No)\n");
-          scanf( "%s", buf );
-          flag = strncmp( buf, "Yes", 3 );
+          scanf( "%s", buff );
+          flag = strncmp( buff, "Yes", 3 );
 
-          // send confirmation to server
-          my_send(s, &flag, sizeof(flag), 0);
+          if ( send( s, flag, sizeof(flag), 0 ) == -1 ) {   // conf
+              perror("send error");
+              exit(1);
+          }
 
           if ( flag == 0 ) {
               // wait for server success/error response
