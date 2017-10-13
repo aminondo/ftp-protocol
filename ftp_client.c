@@ -30,7 +30,7 @@ int main( int argc, char * argv[] ) {
   unsigned char digest[MD5_DIGEST_LENGTH], tmp_md5[MD5_DIGEST_LENGTH];
   int len, s, size;
   FILE *fp;
-  struct timeval start, end;
+  struct timeval start, fin;
 
   //check arguments
   if(argc == 2){
@@ -261,7 +261,7 @@ int main( int argc, char * argv[] ) {
       fclose( fp );
 
       // open file in disk
-      if ( ( fp = fopen( name, "r" ) ) == NULL ){
+      if ( ( fp = fopen( buff, "r" ) ) == NULL ){
           printf("file I/O error\n");
           exit(1);
       }
