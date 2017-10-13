@@ -15,6 +15,13 @@
 #define PORT 41046
 #define MAXLINE 256
 
+int throughput( struct timeval *start, struct timeval *fin ) { // quick calc throughput
+    int usec = fin->tv_usec - start->tv_usec;
+    bzero( start, sizeof( struct timeval ) );
+    bzero( fin, sizeof( struct timeval ) );
+    return usec;
+}
+
 int main( int argc, char * argv[] ) {
   struct hostent *hp;
   struct sockaddr_in sin;
@@ -228,7 +235,7 @@ int main( int argc, char * argv[] ) {
       }
 
       if ( ( fp = fopen( buff, "w" ) ) == NULL ){ // open file
-          perror("I/O error")
+          perror("I/O error");
           exit(1);
       }
 
@@ -273,7 +280,6 @@ int main( int argc, char * argv[] ) {
       fclose( fp );
 
       // compare MD5 hashes
-      flag = md5_cmp( tmp_md5, digest );
       int i;
       int res = 1;
       for ( i = 0; i < MD5_DIGEST_LENGTH; i++ )
