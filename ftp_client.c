@@ -7,6 +7,7 @@
 #include <netdb.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <mhash.h>
 
 
 #define PORT 41046
@@ -18,6 +19,7 @@ int main( int argc, char * argv[] ) {
   char *host;
   char buff[MAXLINE], msg[MAXLINE];
   int len, s;
+  FILE *fp;
 
   //check arguments
   if(argc == 2){
@@ -286,8 +288,10 @@ int main( int argc, char * argv[] ) {
       }
       printf( "File MD5sum: " );
 
-      for ( i = 0; i < MD5_DIGEST_LENGTH; i++ )
+      int i;
+      for ( i = 0; i < MD5_DIGEST_LENGTH; i++ ) {
         printf( "%02hhx", digest[i] );
+      }
 
       puts(''); // newline
 
