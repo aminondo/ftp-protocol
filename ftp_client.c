@@ -28,7 +28,7 @@ int main( int argc, char * argv[] ) {
   char *host;
   char buff[MAXLINE], msg[MAXLINE];
   unsigned char digest[MD5_DIGEST_LENGTH], tmp_md5[MD5_DIGEST_LENGTH];
-  int len, s, size;
+  int len, s, size, tmp_size;
   FILE *fp;
   struct timeval start, fin;
 
@@ -79,6 +79,7 @@ int main( int argc, char * argv[] ) {
 
   //main loop
   while(fgets(buff, sizeof(buff), stdin)) {
+    tmp_size = 0;
     buff[MAXLINE-1] = '\0';
     memset(msg, 0, sizeof(msg));
 
