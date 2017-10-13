@@ -20,7 +20,7 @@ int main( int argc, char * argv[] ) {
   struct sockaddr_in sin;
   char *host, *name;
   char buff[MAXLINE], msg[MAXLINE];
-  unsigned char tmp_md5[MD5_DIGEST_LENGTH], digest[MD5_DIGEST_LENGTH];
+  unsigned char digest[MD5_DIGEST_LENGTH];
   int len, s, size;
   FILE *fp;
 
@@ -296,7 +296,7 @@ int main( int argc, char * argv[] ) {
         printf( "%02hhx", digest[i] );
       }
 
-      puts(''); // newline
+      printf("\n"); // newline
 
     } else if (!strncmp(buff, "DELF", 4)) { // del file
       int flag = 1;
