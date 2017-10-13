@@ -16,6 +16,10 @@
 #define MAX_PENDING 5
 #define MAXLINE 256
 
+typedef struct {
+  long tv_sec;
+  long tv_usec;
+} timeval;
 
 int main() {
   struct sockaddr_in sin;
@@ -384,7 +388,7 @@ int main() {
               perror("server hash failed");
               exit(1);
             }
-            bzero(buff,sizeof(buf));
+            bzero(buff,sizeof(buff));
             bytes = fread(buf, 1, MAXLINE, fp);
             while(bytes > 0 )
             {
