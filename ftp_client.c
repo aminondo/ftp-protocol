@@ -216,7 +216,7 @@ int main( int argc, char * argv[] ) {
         exit(1);
       }
       //receive status back from server
-      if ( recv( s, flag, sizeof(flag), 0 ) == -1 ) {
+      if ( recv( s, &flag, sizeof(flag), 0 ) == -1 ) {
         perror("receive error");
         exit(1);
       }
@@ -227,7 +227,7 @@ int main( int argc, char * argv[] ) {
           scanf( "%s", buff );
           flag = strncmp( buff, "Yes", 3 );
 
-          if ( send( s, flag, sizeof(flag), 0 ) == -1 ) {   // conf
+          if ( send( s, &flag, sizeof(flag), 0 ) == -1 ) {   // conf
               perror("send error");
               exit(1);
           }
