@@ -9,6 +9,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <errno.h>
+#include <mhash.h>
 
 #define PORT 41046
 #define MAX_PENDING 5
@@ -306,7 +307,7 @@ int main() {
 
       if(!strncmp(buff, "UPLD", 4)) {
         FILE *fp;
-        char file[MAX_LINE];
+        char file[MAXLINE];
         int filesize, bytesReceived, bytes;
         short int len_filename = 0;
         MHASH td;
@@ -323,7 +324,7 @@ int main() {
         len_filename = ntohs(len_filename);
 
         // receive file name
-        bzero(buf, sizeof(buf));
+        bzero(buff, sizeof(buff));
         if((len=recv(new_s,file,len_filename,0))==-1)
         {
             perror("server received error");
