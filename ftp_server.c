@@ -437,7 +437,7 @@ int main() {
           perror("Server recieve error");
           exit(1);
         }
-        buf[len] = '\0';
+        buff[len] = '\0';
 
         if (access(buff, R_OK) != -1) { //readable
             stat(buff, &st);
