@@ -199,6 +199,97 @@ int main( int argc, char * argv[] ) {
     }
 
     else if(!strncmp(buff, "UPLD", 4)) { // upload file
+        int flag = 1;
+        len = strlen(buff) + 1;
+        if(send(s, buff, len, 0) == -1){
+          perror("Client send error\n");
+          exit(1);
+        }
+
+        printf("file to upload: ");
+        fgets(buff, sizeof(buff), stdin);
+        len = strlen(buff) + 1;
+        if(send(s, buff, len, 0) == -1){
+          perror("Client send error\n");
+          exit(1);
+        }
+
+        if ( recv( s, &flag, sizeof(flag), 0 ) == -1 ) { // ack
+          perror("receive error");
+          exit(1);
+        }
+        if ( flag == 0 ) {
+            printf( "Cannot write file on server\n" );
+            continue;
+        }
+
+        // open file to read
+        if ( ( fp = fopen( name, "r" ) ) == NULL ) {
+            size = -1;
+            if ( send( s, &size, sizeof(size), 0 ) == -1 ) {
+                perror("send error");
+                exit(1);
+            }
+            printf( "Cannot find file on drive.\n" );
+            continue;
+        }
+
+        fseek( fp, 0L, SEEK_END ); // get fsize
+        size = ftell(fp);
+        fseek( fp, 0, SEEK_SET );
+
+        // send file size to server
+        if ( send( s, &size, sizeof(size), 0 ) == -1 ) {
+            perror("send error");
+            exit(1);
+        }
+        // send file to server
+        do {
+            bzero( buf, sizeof(buf) );
+            len = fread( buf, sizeof(char), sizeof(buf), fp );
+            if(send(s, buff, len, 0) == -1) {
+              perror("Client send error\n");
+              exit(1);
+            }
+        } while ( !feof( fp ) );
+
+        fseek( fp, 0, SEEK_SET ); // fp reset
+        MD5_CTX mdContext; //setup
+        MD5_Init (&mdContext);
+        do {
+            bzero(name, sizeof(name) );
+            len = fread (name, sizeof(char), sizeof(name), fp );
+            MD5_Update( &mdContext, name, len );
+        } while ( len != 0 );
+
+        MD5_Final ( digest, &mdContext );
+
+        len = MD5_DIGEST_LENGTH;
+        fclose( fp );
+
+      if ( send( s, digest, len, 0 ) == -1 ) {     // send hash
+          perror("send error");
+          exit(1);
+      }
+
+      if ( recv( s, &flag, sizeof(flag), 0 ) == -1 ) { // result
+          perror("receive error");
+          exit(1);
+      }
+
+      // report result
+      if ( flag == 0 ) printf("file transfer error\n");
+      else {
+        printf("file transfer successful\n");
+        printf( "%d Bytes sent in %.6lf sec(s): ", size, flag / 1000000.0 );
+        printf( "%.3lf MBps\n", ( double ) ( size / flag ) );
+      }
+      printf( "File MD5sum: " );
+
+      for ( i = 0; i < MD5_DIGEST_LENGTH; i++ )
+        printf( "%02hhx", digest[i] );
+
+      puts(''); // newline
 
     } else if (!strncmp(buff, "DELF", 4)) { // del file
       int flag = 1;

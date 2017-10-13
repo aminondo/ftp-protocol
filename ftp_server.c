@@ -303,6 +303,113 @@ int main() {
         }
 
       }
+
+      if(!strncmp(buff, "UPLD", 4)) {
+        FILE *fp;
+        char file[MAX_LINE];
+        int filesize, bytesReceived, bytes;
+        short int len_filename = 0;
+        MHASH td;
+        unsigned char hash[16];
+        unsigned char client_hash[16];
+
+        struct timeval tv_start, tv_end;
+
+        if((len = recv(new_s, &len_filename, sizeof(len_filename), 0)) == -1){
+          perror("Server recieve error");
+          exit(1);
+        }
+
+        len_filename = ntohs(len_filename);
+
+        // receive file name
+        bzero(buf, sizeof(buf));
+        if((len=recv(new_s,file,len_filename,0))==-1)
+        {
+            perror("server received error");
+            exit(1);
+        }
+        file[len] = '\0';
+
+        int temp = -1; // ack
+        temp = htonl(temp);
+        if(send(new_s, &temp, sizeof(int), 0)==-1)  {
+          perror("Server send error");
+          exit(1)
+        }
+
+        filesize = 0;
+        len = 0;
+        if((len=recv(new_s, &filesize, sizeof(int), 0))==-1) {
+          perror("Server recieve error");
+          exit(1);
+        }
+        filesize = ntohl(filesize);
+
+        if (filesize != -1) { // valid file
+            if(!(fp = fopen(file, "w+"))) {
+              perror("unable to open file");
+              exit(1);
+            }
+
+            gettimeofday(&tv_start,0);
+
+            int remaining_filesize = filesize;
+            while (remaining_filesize > 0) {
+                bytesReceived = recv(new_s, buf, MAX_LINE > remaining_filesize ? remaining_filesize: MAX_LINE, 0);
+                if(bytesReceived < 0) {
+                  perror("server receive error");
+                  exit(1);
+                }
+                remaining_filesize -= bytesReceived;
+                if(fwrite(buf, sizeof(char), bytesReceived, fp) < bytesReceived) {
+                  perror("server write error");
+                  exit(1);
+                }
+            }
+
+            gettimeofday(&tv_end,0);
+
+            if (recv(new_s, client_hash, sizeof(hash), 0) == -1) {
+              perror("server receive error");
+              exit(1);
+            }
+
+            // reset filepointer and calculate MD5 hash
+            rewind(fp);
+            td = mhash_init(MHASH_MD5);
+            if (td == MHASH_FAILED) {
+              perror("server hash failed");
+              exit(1);
+            }
+            bzero(buf,sizeof(buf));
+            bytes = fread(buf, 1, MAX_LINE, fp);
+            while(bytes > 0 )
+            {
+                mhash(td, &buf, sizeof(buf));
+                bzero(buf,sizeof(buf));
+                bytes = fread(buf,1, MAX_LINE, fp);
+            }
+            mhash_deinit(td,hash);
+            fclose(fp);
+
+            if(strncmp((char *)hash,(char *)client_hash,16) == 0){ // success, time
+                int time_diff = (tv_end.tv_sec - tv_start.tv_sec)*1000000L +tv_end.tv_usec - tv_start.tv_usec;
+                time_diff = htonl(time_diff);
+                if(send(new_s, &time_diff, sizeof(int), 0)==-1) {
+                  perror("Server send error\n");
+                  exit(1);
+                }
+            } else { // err
+                int flag = -1;
+                flag = htonl(flag);
+                if(send(new_s, &flag, sizeof(int), 0)==-1) {
+                  perror("Server send error\n");
+                  exit(1);
+                }
+            }
+        }
+      }
     }
 
     //close connection
