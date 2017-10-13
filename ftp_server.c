@@ -16,11 +16,6 @@
 #define MAX_PENDING 5
 #define MAXLINE 256
 
-typedef struct {
-  long tv_sec;
-  long tv_usec;
-} timeval;
-
 int main() {
   struct sockaddr_in sin;
   char buff[MAXLINE], msg[MAXLINE], path[MAXLINE];
@@ -320,7 +315,7 @@ int main() {
         unsigned char hash[16];
         unsigned char client_hash[16];
 
-        timeval tv_start, tv_end;
+        struct timeval tv_start, tv_end;
 
         if((len = recv(new_s, &len_filename, sizeof(len_filename), 0)) == -1){
           perror("Server recieve error");

@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -lssl
+CFLAGS=-Wall -lmhash
 
 
 all: ftp_server ftp_client
