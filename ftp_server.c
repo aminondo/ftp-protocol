@@ -234,6 +234,75 @@ int main() {
           }
         }
       }
+
+      if(!strncmp(buff, "DELF", 4)) {
+        char file[MAXLINE];
+        short int fNameLen;
+
+        // receive len of filename
+        if((len=recv(new_s, &fNameLen, sizeof(short int),0))==-1)  {
+            perror("server received error\n");
+            exit(1);
+        }
+
+        fNameLen = ntohs(fNameLen);
+
+        // receive file name
+        bzero(file, sizeof(file));
+        if((len=recv(new_s,file,fNameLen,0))==-1) {
+            perror("server received error\n");
+            close(new_s);
+            close(s);
+            exit(1);
+        }
+        file[len] = '\0';
+
+        // check if file exists
+        int flag;
+        if (access(file, F_OK) != -1) {
+            flag = 1;
+        } else {
+            flag = -1;
+        }
+        flag = htonl(flag);
+        if(send(new_s, &flag, sizeof(int), 0)==-1) {
+            perror("server send error\n");
+            close(new_s);
+            close(s);
+            exit(1);
+        }
+
+        flag = ntohl(flag);
+        if (flag == 1) { // file exists
+            if((len=recv(new_s, &flag, sizeof(int),0))==-1) {
+                perror("server send error\n");
+                close(new_s);
+                close(s);
+                exit(1);
+            }
+            flag = ntohl(flag);
+
+            // if the user confirms deletion
+            if (flag == 1) {
+                int ret_val = remove(file);
+                ret_val = htonl(ret_val);
+                if(send(new_s, &ret_val, sizeof(int), 0)==-1) {
+                    perror("server send error\n");
+                    close(new_s);
+                    close(s);
+                    exit(1);
+                }
+            } else if (flag == -1) { // 'NO'
+                // do nothing, back to waiting!
+            } else {
+                perror("invalid response\n");
+                close(new_s);
+                close(s);
+                exit(1);
+            }
+        }
+
+      }
     }
 
     //close connection

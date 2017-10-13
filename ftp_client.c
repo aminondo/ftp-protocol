@@ -195,6 +195,52 @@ int main( int argc, char * argv[] ) {
 
       }
     }
+    else if(!strncmp(buff, "DWLD", 4)){ // get file
+    }
+
+    else if(!strncmp(buff, "UPLD", 4) { // upload file
+
+    } else if (!strncmp(buff, "DELF", 4) { // del file
+      int flag = 1;
+
+      len = strlen(buff) + 1;
+      if(send(s, buff, len, 0) == -1){
+        perror("Client send error\n");
+        exit(1);
+      }
+      printf("file to delete: ");
+      fgets(buff, sizeof(buff), stdin);
+      len = strlen(buff) + 1;
+      if(send(s, buff, len, 0) == -1){
+        perror("Client send error\n");
+        exit(1);
+      }
+      //receive status back from server
+      if ( recv( s, buff, size, flag ) == -1 ) {
+        perror("receive error");
+        exit(1);
+      }
+      if ( flag == -1 ) printf( "The file does not exist on server.\n");
+      else {
+          // get confirmation from user
+          printf( "Are you sure you want to remove this file? (Yes/No)\n");
+          scanf( "%s", buf );
+          flag = strncmp( buf, "Yes", 3 );
+
+          // send confirmation to server
+          my_send(s, &flag, sizeof(flag), 0);
+
+          if ( flag == 0 ) {
+              // wait for server success/error response
+              if((len = recv(s, msg, sizeof(msg), 0)) == -1){
+                perror("Client receive error\n");
+                exit(1);
+              }
+              if ( msg == 1 ) printf("delete successful");
+              else printf("delete failure");
+          } else printf("Delete abandoned by the user!\n");
+      }
+    }
 
     printf("\n------------------------------------------------------------\n");
     printf("DWLD: download a file from server\n");
