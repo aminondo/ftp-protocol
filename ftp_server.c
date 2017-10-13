@@ -320,7 +320,7 @@ int main() {
         unsigned char hash[16];
         unsigned char client_hash[16];
 
-        struct timeval tv_start, tv_end;
+        timeval tv_start, tv_end;
 
         if((len = recv(new_s, &len_filename, sizeof(len_filename), 0)) == -1){
           perror("Server recieve error");
@@ -395,7 +395,7 @@ int main() {
             {
                 mhash(td, &buff, sizeof(buff));
                 bzero(buff,sizeof(buff));
-                bytes = fread(buf,1, MAXLINE, fp);
+                bytes = fread(buff,1, MAXLINE, fp);
             }
             mhash_deinit(td,hash);
             fclose(fp);
