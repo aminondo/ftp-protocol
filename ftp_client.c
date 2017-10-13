@@ -229,7 +229,7 @@ int main( int argc, char * argv[] ) {
         }
 
         // open file to read
-        if ( ( fp = fopen( name, "r" ) ) == NULL ) {
+        if ( ( fp = fopen( buff, "r" ) ) == NULL ) {
             size = -1;
             if ( send( s, &size, sizeof(size), 0 ) == -1 ) {
                 perror("send error");
