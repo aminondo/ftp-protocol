@@ -198,9 +198,9 @@ int main( int argc, char * argv[] ) {
     else if(!strncmp(buff, "DWLD", 4)){ // get file
     }
 
-    else if(!strncmp(buff, "UPLD", 4) { // upload file
+    else if(!strncmp(buff, "UPLD", 4)) { // upload file
 
-    } else if (!strncmp(buff, "DELF", 4) { // del file
+    } else if (!strncmp(buff, "DELF", 4)) { // del file
       int flag = 1;
 
       len = strlen(buff) + 1;
