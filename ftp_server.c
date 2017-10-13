@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <mhash.h>
-#include <time.h>
+#include <sys/time.h>
 
 #define PORT 41046
 #define MAX_PENDING 5
