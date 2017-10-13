@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <mhash.h>
+#include <time.h>
 
 #define PORT 41046
 #define MAX_PENDING 5
@@ -357,13 +358,13 @@ int main() {
 
             int remaining_filesize = filesize;
             while (remaining_filesize > 0) {
-                bytesReceived = recv(new_s, buf, MAX_LINE > remaining_filesize ? remaining_filesize: MAX_LINE, 0);
+                bytesReceived = recv(new_s, buff, MAXLINE > remaining_filesize ? remaining_filesize: MAXLINE, 0);
                 if(bytesReceived < 0) {
                   perror("server receive error");
                   exit(1);
                 }
                 remaining_filesize -= bytesReceived;
-                if(fwrite(buf, sizeof(char), bytesReceived, fp) < bytesReceived) {
+                if(fwrite(buff, sizeof(char), bytesReceived, fp) < bytesReceived) {
                   perror("server write error");
                   exit(1);
                 }
@@ -384,12 +385,12 @@ int main() {
               exit(1);
             }
             bzero(buf,sizeof(buf));
-            bytes = fread(buf, 1, MAX_LINE, fp);
+            bytes = fread(buf, 1, MAXLINE, fp);
             while(bytes > 0 )
             {
                 mhash(td, &buf, sizeof(buf));
                 bzero(buf,sizeof(buf));
-                bytes = fread(buf,1, MAX_LINE, fp);
+                bytes = fread(buf,1, MAXLINE, fp);
             }
             mhash_deinit(td,hash);
             fclose(fp);
