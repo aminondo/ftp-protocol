@@ -337,7 +337,7 @@ int main() {
         temp = htonl(temp);
         if(send(new_s, &temp, sizeof(int), 0)==-1)  {
           perror("Server send error");
-          exit(1)
+          exit(1);
         }
 
         filesize = 0;
@@ -384,12 +384,12 @@ int main() {
               perror("server hash failed");
               exit(1);
             }
-            bzero(buf,sizeof(buf));
+            bzero(buff,sizeof(buf));
             bytes = fread(buf, 1, MAXLINE, fp);
             while(bytes > 0 )
             {
-                mhash(td, &buf, sizeof(buf));
-                bzero(buf,sizeof(buf));
+                mhash(td, &buff, sizeof(buff));
+                bzero(buf,sizeof(buff));
                 bytes = fread(buf,1, MAXLINE, fp);
             }
             mhash_deinit(td,hash);
