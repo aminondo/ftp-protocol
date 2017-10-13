@@ -16,7 +16,7 @@
 int main( int argc, char * argv[] ) {
   struct hostent *hp;
   struct sockaddr_in sin;
-  char *host *name;
+  char *host, *name;
   char buff[MAXLINE], msg[MAXLINE];
   unsigned char tmp_md5[MD5_DIGEST_LENGTH], digest[MD5_DIGEST_LENGTH];
   int len, s, size;
